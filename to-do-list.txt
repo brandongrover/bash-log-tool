@@ -1,4 +1,4 @@
-############################## To-do List ##############################
+######################################################### To-do List ######################################################### 
 1. logSplit function
 	- Split logs once X entries has been hit and finds the first and last date to catalog
 	- Restart dependant services
