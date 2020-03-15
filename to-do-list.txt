@@ -1,0 +1,7 @@
+############################## To-do List ##############################
+1. logSplit function
+	- Split logs once X entries has been hit and finds the first and last date to catalog
+	- Restart dependant services
+
+2. print function
+	- Print the display depending on what function you put into it. 
