@@ -1,4 +1,8 @@
 #! /bin/bash
+function logSplit() {
+
+}
+
 if [ "$(id -u)" != "0" ]
 then
         echo -e "\e[91mUnauthorized user\e[39m"
