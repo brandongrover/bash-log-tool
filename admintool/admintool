@@ -3,6 +3,9 @@
 source /home/f43ak/git/admintool/config/exclude.list
 source /home/f43ak/git/admintool/config/tool.config
 
+# check for intrusion
+
+
 # Setup Defaults
 function setup () {
 clear 
@@ -22,6 +25,7 @@ read -p "Amount of non-root SSH login events to show: "  attemptValue
 read -p "Amount of entries to start warning for log splitting: "  logEntryWarn
 read -p "Amount of entries to automatically split logs: "  logEntryMax
 echo -e "\e[92mCompleted Setup.\e[0m"
+setupInit=1
 echo "Beginning Admin Tool"
 sleep 5
 clear
@@ -188,7 +192,14 @@ do
 		tail=" | tail -$attemptValue"
 		shift
 		shift
-		;; 
+		;;
+	5) # intrusion
+		excludeNameList=("${excludeSuccessfulSSH[@]}")
+		include=' | wc -l'
+		tail=" | tail -$logDensity"
+		shift
+		shift
+		;;
 	*) # defaultCase
 	 	tail=' | tail -5'
 		exclude='NULLEXCLUSION'
@@ -203,7 +214,7 @@ do
 	grepString=" | grep -v ${excludeNameList[$x]}"
 	grepList+=$grepString
 done
-results=($func $grepList $tail)
+results=($func $grepList $tail $include)
 eval "${results[@]}"
 }
 ########################################################
@@ -214,6 +225,7 @@ echo -e "\e[90m*\e[96m                                                     Admin
 echo -e $spacer
 
 # Check for intrusion
+unAuthorized=$(searchExcluder "$recentSuccessfulEvents" '5')
 if [ "$unAuthorized" != "0" ]
         then
                 intrusion=Yes
