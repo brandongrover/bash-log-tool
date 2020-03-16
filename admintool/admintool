@@ -16,8 +16,6 @@ then
 		echo "File moved to: $archiveLocation$archiveName"
 		echo "Restarting dependant services..."
 		$(systemctl restart syslog-ng)
-		$(systemctl stop fail2ban)
-		$(systemctl start fail2ban)
 		sleep 1
 		echo "Daemons restarted."
 		sleep 1
