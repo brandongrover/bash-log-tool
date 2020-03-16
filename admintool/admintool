@@ -13,11 +13,13 @@ then
 	then
 		echo "Moving current log to archive..."
 		$(mv "$auth" "$archiveLocation$archiveName")
-		echo "Filed moved to: $archiveLocation$archiveName"
+		echo "File moved to: $archiveLocation$archiveName"
 		echo "Restarting dependant services..."
 		$(systemctl restart syslog-ng)
 		$(systemctl restart fail2ban)
+		sleep 1
 		echo "Daemons restarted."
+		sleep 1
 		echo "Starting Admin Tool..."
 		sleep 5
 		clear
@@ -32,7 +34,7 @@ fi
 }
 
 # Run Log Splitter?
-if [ "$enableSplitter" == true ]
+if [ "$enableSplitter" == true ] && [ "$logDensity" > "$logEntryWarn" ]
 then
 	logSplit
 fi
