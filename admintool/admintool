@@ -31,7 +31,7 @@ else
 	clear
 fi
 }
-
+function startUp () {
 # Run Log Splitter?
 if [[ "$enableSplitter" == true && "$logDensity" > "$logEntryWarn" ]]
 then
@@ -46,18 +46,18 @@ then
         echo -e "\e[91mUnauthorized user\e[39m"
         exit 1
 fi
-
+}
+startUp
 # Usage
-usage()
-{
-        echo -e "\e[96mParameters:"
-        echo -e "\e[32m-b  or --showban \e[39m[true|false] show the sshd ban stats"
-        echo -e "\e[32m-f  or --failedamount    \e[39m[value]  amount of recent failed access attempts to display"
-        echo -e "\e[32m-s  or --successamount   \e[39m[value] amount of recent successful access events to display"
-        echo -e "\e[32m-e  or --exclude \e[39m[string] exclusion from fail/success event search parameters"
-        echo -e "\e[32m-u  or --userswitch      \e[39m[value] amount of recent switch user events to display"
-        echo -e "\e[32m-a  or --userattempts    \e[39m[true|false] show the user attempt events"
-        echo -e "\e[32m-av or --attemptvalue    \e[39m[value] amount of recent non-root user attempts to display"
+function usage() {
+echo -e "\e[96mParameters:"
+echo -e "\e[32m-b  or --showban \e[39m[true|false] show the sshd ban stats"
+echo -e "\e[32m-f  or --failedamount    \e[39m[value]  amount of recent failed access attempts to display"
+echo -e "\e[32m-s  or --successamount   \e[39m[value] amount of recent successful access events to display"
+echo -e "\e[32m-e  or --exclude \e[39m[string] exclusion from fail/success event search parameters"
+echo -e "\e[32m-u  or --userswitch      \e[39m[value] amount of recent switch user events to display"
+echo -e "\e[32m-a  or --userattempts    \e[39m[true|false] show the user attempt events"
+echo -e "\e[32m-av or --attemptvalue    \e[39m[value] amount of recent non-root user attempts to display"
 }
 
 # Argument Handler
@@ -114,15 +114,18 @@ esac
 done
 set -- "${POSITIONAL[@]}" # restore positional parameters
 
-# Array Of User Processing
-$(rm /var/log/testlog)
+# Array Of User Processing (Checks if they successfully tried logging into valid accounts
 for (( t=0; t<len; t++));
 do
-        failedUserSearch=$(cat /var/log/$sshFileName | grep "sshd" | grep "user" | grep "Failed password" | grep ${userList[$t]})
-        echo "$failedUserSearch" >> /var/log/testlog
-        successUserSearch=$(cat /var/log/$sshFileName | grep "sshd" | grep "user" | grep "Accepted password" | grep ${userList[$t]})
+	# Find Occurrences of failed passwords/accepted passwords
+        failedUserSearch=$(cat /var/log/$sshFileName | grep "sshd" | grep "user" | grep "Failed password" | grep ${userList[$t]} | grep -v root | wc -l)
+	failedRootSearch=$(cat /var/log/$sshFileName | grep "sshd" | grep "user" | grep "Failed password" | grep ${userList[$t]} | grep root | wc -l)
+	successUserSearch=$(cat /var/log/$sshFileName | grep "sshd" | grep "user" | grep "Accepted password" | grep ${userList[$t]})
+	failedUserCounter=$(($failedUserCounter + $failedUserSearch))
+	failedRootCounter=$(($failedRootCounter + $failedRootSearch))
 done
-
+#echo ${#rootAttemptArray[@]}
+#echo ${#nonRootAttemptArray[@]}
 # Search/Exclude/Limit Function
 function searchExcluder() {
 func=$1
@@ -191,6 +194,8 @@ echo -e "\e[96m Intrusion: \e[33m$intrusion\e[25m\e[90m"
 echo -e "\e[96m Log Size: \e[33m$authSize"" \e[25m\e[90m"
 echo -e "\e[96m Log Entries: \e[33m$authEntries \e[25m\e[90m"
 echo -e "\e[96m Failed Entries: \e[33m$failedLogins \e[25m\e[90m"
+echo -e "\e[96m Root Attempts: \e[33m$failedRootCounter \e[90m"
+echo -e "\e[96m User Account Attempts: \e[33m$failedUserCounter \e[90m"
 
 # Recent Failed Events Output
 echo -e $spacer
