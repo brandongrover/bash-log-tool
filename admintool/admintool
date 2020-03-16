@@ -1,8 +1,28 @@
 #! /bin/bash
-function logSplit() {
-
+function logSplit {
+echo "Checking log density..."
+logDensity=$(cat "$auth" | wc -l) # Move this to tool.config later
+read -p "Log density at $logDensity entries. Would you like to archive current log? (y/n): "  archiveCheck
+if [ "$logDensity" >= "$logEntryMax" ]
+then
+	echo "Moving current log to archive..."
+	$(mv "$auth" "$archiveLocation$archiveName")
+	echo "Filed moved to: $archiveLocation$archiveName"
+	echo "Restarting dependant services..."
+	$(systemctl restart syslog-ng)
+	$(systemctl restart fail2ban)
+	echo "Daemons restarted. Starting Admin Tool"
+        sleep 5	
+	$(clear)
+fi
 }
+# Run Log Splitter?
+if [ "$enableSplitter" == 'true' ]
+then
+	logSplit
+fi
 
+# Check if sudo
 if [ "$(id -u)" != "0" ]
 then
         echo -e "\e[91mUnauthorized user\e[39m"
