@@ -3,6 +3,38 @@
 source /home/f43ak/git/admintool/config/exclude.list
 source /home/f43ak/git/admintool/config/tool.config
 
+# Setup Defaults
+function setup () {
+clear 
+echo "Starting setup"
+echo -e "\e[31mName and location setup:\e[0m"
+read -p "SSH log file name:  "  sshFileName
+read -p "Log directory: "  auth
+read -p "Log archive location "  archiveLocation
+echo -e "\e[31mDefault variable setup:\e[0m"
+read -p "Enable log splitting? [true|false]:  "  enableSplitter
+read -p "Show fail2ban stats for SSH [true|false]: "  showBan
+read -p "Show attempts on local user accounts [true|false]: "  showUserAttempts
+read -p "Amount of failed SSH login events to show: "  failedAmount
+read -p "Amount of successful SSH login events to show: "  successAmount
+read -p "Amount of switch user events to show:  "  switchEvents
+read -p "Amount of non-root SSH login events to show: "  attemptValue
+read -p "Amount of entries to start warning for log splitting: "  logEntryWarn
+read -p "Amount of entries to automatically split logs: "  logEntryMax
+echo -e "\e[92mCompleted Setup.\e[0m"
+echo "Beginning Admin Tool"
+sleep 5
+clear
+}
+
+# Setup check
+if [ "$setupInit" != '1' ]
+then
+        setup
+else
+        :
+fi
+
 function logSplit () {
 clear
 echo "Checking log density..."
