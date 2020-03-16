@@ -1,23 +1,38 @@
 #! /bin/bash
-function logSplit {
+# Sources
+source /home/f43ak/git/admintool/config/exclude.list
+source /home/f43ak/git/admintool/config/tool.config
+
+function logSplit () {
+clear
 echo "Checking log density..."
-logDensity=$(cat "$auth" | wc -l) # Move this to tool.config later
 read -p "Log density at $logDensity entries. Would you like to archive current log? (y/n): "  archiveCheck
-if [ "$logDensity" >= "$logEntryMax" ]
+if [ "$archiveCheck" == 'y' ]
 then
-	echo "Moving current log to archive..."
-	$(mv "$auth" "$archiveLocation$archiveName")
-	echo "Filed moved to: $archiveLocation$archiveName"
-	echo "Restarting dependant services..."
-	$(systemctl restart syslog-ng)
-	$(systemctl restart fail2ban)
-	echo "Daemons restarted. Starting Admin Tool"
-        sleep 5	
-	$(clear)
+	if [ "$logDensity" > "$logEntryMax" ]
+	then
+		echo "Moving current log to archive..."
+		$(mv "$auth" "$archiveLocation$archiveName")
+		echo "Filed moved to: $archiveLocation$archiveName"
+		echo "Restarting dependant services..."
+		$(systemctl restart syslog-ng)
+		$(systemctl restart fail2ban)
+		echo "Daemons restarted."
+		echo "Starting Admin Tool..."
+		sleep 5
+		clear
+	else
+		echo "Log size not at limit."
+	fi
+else
+	echo "Continuing to Admin Tool..."
+	sleep 5
+	clear
 fi
 }
+
 # Run Log Splitter?
-if [ "$enableSplitter" == 'true' ]
+if [ "$enableSplitter" == true ]
 then
 	logSplit
 fi
@@ -41,10 +56,6 @@ usage()
         echo -e "\e[32m-a  or --userattempts    \e[39m[true|false] show the user attempt events"
         echo -e "\e[32m-av or --attemptvalue    \e[39m[value] amount of recent non-root user attempts to display"
 }
-
-# Sources
-source /etc/f43ak/exclude.list
-source /etc/f43ak/tool.config
 
 # Argument Handler
 POSITIONAL=()
