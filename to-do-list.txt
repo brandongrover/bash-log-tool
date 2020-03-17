@@ -5,6 +5,7 @@
 2. fix array of user processing [Finished]
 
 3. first time setup function [WIP]
+	- Fix saving of config variables
 
 4. print function
 	- Print the display depending on what function you put into it. 
