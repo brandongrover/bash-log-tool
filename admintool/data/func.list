@@ -4,6 +4,7 @@
 
 function setup () {
 clear 
+dependencyCheck
 echo "Starting setup"
 echo -e "\e[31mName and location setup:\e[0m"
 read -p "SSH log file name:  "  sshFileName
@@ -21,6 +22,7 @@ read -p "Amount of entries to start warning for log splitting: "  logEntryWarn
 read -p "Amount of entries to automatically split logs: "  logEntryMax
 echo -e "\e[92mCompleted Setup.\e[0m"
 setupInit=1
+cachedsshFileName=$sshFileName
 auth='"'$auth'"'
 sshFileName='"'$sshFileName'"'
 archiveLocatin='"'$archiveLocation'"'
@@ -40,7 +42,7 @@ sed -i "/logEntryWarn/s/=.*/=$logEntryWarn/" $config_file
 sed -i "/logEntryMax/s/=.*/=$logEntryMax/" $config_file
 sed -i "/setupInit/s/=.*/=$setupInit/" $config_file
 sleep 5
-auth=$auth
+sshFileName=$cachedsshFileName
 clear
 }
 
@@ -154,4 +156,41 @@ do
 done
 results=($func $grepList $tail $include)
 eval "${results[@]}"
+}
+
+function dependencyCheck() {
+echo "Checking dependencies."
+for (( x=0; x<20; x++ ));
+do
+	printf '.'
+	sleep 0.1
+done
+printf "\n"
+for (( x=0; x<dependencyLen; x++ ));
+do
+	searchInstalledPackages=$(dpkg-query -W "${requiredPackages[$x]}" | wc -l) # Move Later
+	searchInstalledFiles=$(ls /var/log/ | grep "${requiredFiles[$x]}" | wc -l) # Move Later
+	#Report pass/fail
+	if [ "$searchInstalledPackages" ]
+	then
+		echo -e "\e[92m${requiredPackages[$x]} installed.\e[0m"
+		sleep 0.3
+	else
+		echo -e "\e[31m${requiredPackages[$x]} not installed.\e[0m"
+		sleep 0.3
+	fi
+done
+for (( x=0; x<fDependencyLen; x++ ));
+do
+	#report pass/fail
+	if [ "$searchInstalledFiles" ]
+	then
+		echo -e "\e[92m${requiredFiles[$x]} found.\e[0m"
+		sleep 0.3
+	else
+		echo -e "\e[31m${requiredFiles[$x]} not found.\e[0m"
+		sleep 0.3
+	fi
+done
+printf "\n"
 }

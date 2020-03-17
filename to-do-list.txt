@@ -1,11 +1,18 @@
 ######################################################### To-do List ######################################################### 
+
 1. logSplit function [Finished]
 	- Split logs once X entries has been hit and finds the first and last date to catalog
 	- Restart dependant services
 2. fix array of user processing [Finished]
 
-3. first time setup function [WIP]
+3. first time setup function [Finished]
 	- Fix saving of config variables
+	- Check for dependencies
 
 4. print function
 	- Print the display depending on what function you put into it. 
+
+
+######################################################### Known Bugs ######################################################### 
+
+User attempts
