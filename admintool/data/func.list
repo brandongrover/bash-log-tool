@@ -1,0 +1,157 @@
+#####################################################################################################################################################################
+##                                                                          Function                                                                               ##
+#####################################################################################################################################################################
+
+function setup () {
+clear 
+echo "Starting setup"
+echo -e "\e[31mName and location setup:\e[0m"
+read -p "SSH log file name:  "  sshFileName
+read -p "Log directory: "  auth
+read -p "Log archive location "  archiveLocation
+echo -e "\e[31mDefault variable setup:\e[0m"
+read -p "Enable log splitting? [true|false]:  "  enableSplitter
+read -p "Show fail2ban stats for SSH [true|false]: "  showBan
+read -p "Show attempts on local user accounts [true|false]: "  showUserAttempts
+read -p "Amount of failed SSH login events to show: "  failedAmount
+read -p "Amount of successful SSH login events to show: "  successAmount
+read -p "Amount of switch user events to show:  "  switchEvents
+read -p "Amount of non-root SSH login events to show: "  attemptValue
+read -p "Amount of entries to start warning for log splitting: "  logEntryWarn
+read -p "Amount of entries to automatically split logs: "  logEntryMax
+echo -e "\e[92mCompleted Setup.\e[0m"
+setupInit=1
+auth='"'$auth'"'
+sshFileName='"'$sshFileName'"'
+archiveLocatin='"'$archiveLocation'"'
+echo "Beginning Admin Tool"
+# Setting variables
+sed -i "/sshFileName/s/=.*/="$sshFileName"/" $config_file
+sed -i "/auth/s/=.*/="$auth"/" $config_file
+sed -i "/archiveLocation/s/=.*/="$archiveLocation"/" $config_file
+sed -i "/enableSplitter/s/=.*/=$enableSplitter/" $config_file
+sed -i "/showBan/s/=.*/=$showBan/" $config_file
+sed -i "/showUserAttempts/s/=.*/=$showUserAttempts/" $config_file
+sed -i "/failedAmount/s/=.*/=$failedAmount/" $config_file
+sed -i "/successAmount/s/=.*/=$successAmount/" $config_file
+sed -i "/switchEvents/s/=.*/=$switchEvents/" $config_file
+sed -i "/attemptValue/s/=.*/=$attemptValue/" $config_file
+sed -i "/logEntryWarn/s/=.*/=$logEntryWarn/" $config_file
+sed -i "/logEntryMax/s/=.*/=$logEntryMax/" $config_file
+sed -i "/setupInit/s/=.*/=$setupInit/" $config_file
+sleep 5
+auth=$auth
+clear
+}
+
+function logSplit () {
+clear
+echo "Checking log density..."
+read -p "Log density at $logDensity entries. Would you like to archive current log? (y/n): "  archiveCheck
+if [ "$archiveCheck" == 'y' ]
+then
+	if [ "$logDensity" > "$logEntryMax" ]
+	then
+		echo "Moving current log to archive..."
+		$(mv "$auth" "$archiveLocation$archiveName")
+		echo "File moved to: $archiveLocation$archiveName"
+		echo "Restarting dependant services..."
+		$(systemctl restart syslog-ng)
+		sleep 1
+		echo "Daemons restarted."
+		sleep 1
+		echo "Starting Admin Tool..."
+		sleep 5
+		clear
+	else
+		echo "Log size not at limit."
+	fi
+else
+	echo "Continuing to Admin Tool..."
+	sleep 5
+	clear
+fi
+}
+
+function startUp () {
+ Run Log Splitter?
+if [[ "$enableSplitter" == true && "$logDensity" > "$logEntryWarn" ]]
+then
+       logSplit
+else
+       :
+fi
+
+# Check if sudo
+if [ "$(id -u)" != "0" ]
+then
+        echo -e "\e[91mUnauthorized user\e[39m"
+        exit 1
+fi
+}
+
+function usage() {
+echo -e "\e[96mParameters:"
+echo -e "\e[32m-b  or --showban \e[39m[true|false] show the sshd ban stats"
+echo -e "\e[32m-f  or --failedamount    \e[39m[value]  amount of recent failed access attempts to display"
+echo -e "\e[32m-s  or --successamount   \e[39m[value] amount of recent successful access events to display"
+echo -e "\e[32m-e  or --exclude \e[39m[string] exclusion from fail/success event search parameters"
+echo -e "\e[32m-u  or --userswitch      \e[39m[value] amount of recent switch user events to display"
+echo -e "\e[32m-a  or --userattempts    \e[39m[true|false] show the user attempt events"
+echo -e "\e[32m-av or --attemptvalue    \e[39m[value] amount of recent non-root user attempts to display"
+}
+
+function searchExcluder() {
+func=$1
+key=$2
+
+while [[ $2 -gt 0 ]]
+do
+        case $key in
+        1) # failedAmount
+                tail=" | tail -$failedAmount"
+                excludeNameList=("${excludeFailedSSH[@]}")
+                shift
+                shift
+                ;;
+        2) # successAmount
+                tail=" | tail -$successAmount"
+                excludeNameList=("${excludeSuccessfulSSH[@]}")
+                shift
+                shift
+                ;;
+        3) #switchEvents
+                tail=" | tail -$switchEvents"
+                excludeNameList=("${excludeSwitchEvents[@]}")
+                shift
+                shift
+                ;;
+        4) # attemptValue
+                tail=" | tail -$attemptValue"
+                shift
+                shift
+                ;;
+        5) # intrusion
+                excludeNameList=("${excludeSuccessfulSSH[@]}")
+                include=' | wc -l'
+                tail=" | tail -$logDensity"
+                shift
+                shift
+                ;;
+        *) # defaultCase
+                tail=' | tail -5'
+                exclude='NULLEXCLUSION'
+                shift
+                shift
+                ;;
+esac
+done
+xLen=${#excludeNameList[@]}
+for ((x=0; x<xLen; x++));
+do
+        grepString=" | grep -v ${excludeNameList[$x]}"
+        grepList+=$grepString
+done
+results=($func $grepList $tail $include)
+eval "${results[@]}"
+}
