@@ -9,7 +9,11 @@
 	- Fix saving of config variables
 	- Check for dependencies
 
-4. print function
+4. remove hardcoding where possible
+	- Fix hardcoded directories (add $HOME_DIR)
+	- Stop being lazy and fix these. Really. Just do it.
+
+5. print function
 	- Print the display depending on what function you put into it. 
 
 
