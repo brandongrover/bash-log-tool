@@ -4,9 +4,6 @@ config_file=/home/f43ak/git/admintool/config/tool.config
 source /home/f43ak/git/admintool/config/exclude.list
 source $config_file
 
-# check for intrusion
-
-
 # Setup Defaults
 function setup () {
 clear 
@@ -27,11 +24,14 @@ read -p "Amount of entries to start warning for log splitting: "  logEntryWarn
 read -p "Amount of entries to automatically split logs: "  logEntryMax
 echo -e "\e[92mCompleted Setup.\e[0m"
 setupInit=1
+auth='"'$auth'"'
+sshFileName='"'$sshFileName'"'
+archiveLocatin='"'$archiveLocation'"'
 echo "Beginning Admin Tool"
 # Setting variables
-sed -i "/sshFileName/s/=.*/=$sshFileName/" $config_file
-sed -i "/auth/s/=.*/=$auth/" $config_file
-sed -i "/archiveLocation/s/=.*/=$archiveLocation/" $config_file
+sed -i "/sshFileName/s/=.*/="$sshFileName"/" $config_file
+sed -i "/auth/s/=.*/="$auth"/" $config_file
+sed -i "/archiveLocation/s/=.*/="$archiveLocation"/" $config_file
 sed -i "/enableSplitter/s/=.*/=$enableSplitter/" $config_file
 sed -i "/showBan/s/=.*/=$showBan/" $config_file
 sed -i "/showUserAttempts/s/=.*/=$showUserAttempts/" $config_file
@@ -43,6 +43,7 @@ sed -i "/logEntryWarn/s/=.*/=$logEntryWarn/" $config_file
 sed -i "/logEntryMax/s/=.*/=$logEntryMax/" $config_file
 sed -i "/setupInit/s/=.*/=$setupInit/" $config_file
 sleep 5
+auth=$auth
 clear
 }
 
