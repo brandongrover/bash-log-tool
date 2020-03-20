@@ -1,3 +1,4 @@
+#!/bin/bash
 #####################################################################################################################################################################
 ##                                                                          Function                                                                               ##
 #####################################################################################################################################################################
@@ -194,3 +195,38 @@ do
 done
 printf "\n"
 }
+
+function userAttemptCheck () {
+for (( t=0; t<len; t++));
+do
+SAVEIFS=$IFS
+IFS=$'\n'
+        # Find Occurrences of failed passwords/accepted passwords
+        failedUserSearch=$(cat /var/log/$sshFileName | grep "sshd" | grep "user" | grep "Failed password" | grep ${userList[$t]} | grep -v root | wc -l)
+        failedRootSearch=$(cat /var/log/$sshFileName | grep "sshd" | grep "user" | grep "Failed password" | grep ${userList[$t]} | grep root | wc -l)
+        successUserSearch=$(cat /var/log/$sshFileName | grep "sshd" | grep "user" | grep "Accepted password" | grep ${userList[$t]})
+        failedUserCounter=$(($failedUserCounter + $failedUserSearch))
+        failedRootCounter=$(($failedRootCounter + $failedRootSearch))
+        failedUserEvents=$(cat /var/log/$sshFileName | grep "sshd" | grep "user" | grep "Failed password" | grep ${userList[$t]} | grep -v root)
+        failedUserArray+=($failedUserEvents)
+
+IFS=$SAFEIFS
+done
+len=${#failedUserArray[@]}
+for (( t=0; t<len; t++ ));
+do
+        echo "${failedUserArray[$t]}"
+done
+echo "${#failedUserArray[@]}"
+}
+
+
+function display() {
+# Create Header
+echo $spacer
+loop to create spacing depending on the wordcount of output 
+echo $spacer
+print inputted function here
+echo $spacer
+}
+

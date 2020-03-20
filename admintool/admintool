@@ -72,16 +72,29 @@ esac
 done
 set -- "${POSITIONAL[@]}" # restore positional parameters
 
-# Array Of User Processing (Checks if they successfully tried logging into valid accounts
+function userAttemptCheck () {
 for (( t=0; t<len; t++));
 do
+SAVEIFS=$IFS
+IFS=$'\n'
 	# Find Occurrences of failed passwords/accepted passwords
         failedUserSearch=$(cat /var/log/$sshFileName | grep "sshd" | grep "user" | grep "Failed password" | grep ${userList[$t]} | grep -v root | wc -l)
 	failedRootSearch=$(cat /var/log/$sshFileName | grep "sshd" | grep "user" | grep "Failed password" | grep ${userList[$t]} | grep root | wc -l)
 	successUserSearch=$(cat /var/log/$sshFileName | grep "sshd" | grep "user" | grep "Accepted password" | grep ${userList[$t]})
 	failedUserCounter=$(($failedUserCounter + $failedUserSearch))
 	failedRootCounter=$(($failedRootCounter + $failedRootSearch))
+	failedUserEvents=$(cat /var/log/$sshFileName | grep "sshd" | grep "user" | grep "Failed password" | grep ${userList[$t]} | grep -v root)
+	failedUserArray+=($failedUserEvents)
+
+IFS=$SAFEIFS
 done
+len=${#failedUserArray[@]}
+for (( t=0; t<len; t++ ));
+do
+	echo "${failedUserArray[$t]}"
+done
+echo "${#failedUserArray[@]}"
+}
 
 # Start Print
 echo -e $spacer 
@@ -130,13 +143,16 @@ searchExcluder "$switchUserEvents" '3'
 echo -e "\e[0m"
 echo -e $spacer
 
+
+showUserAttempts=true # delete later
 # Show User Attempts?
 if [ "$showUserAttempts" == true ]
 then
-        echo -e "\e[96m User Attempts:"
-        echo -e $spacer
-        echo -e "\e[33m$userAttempts" | fold -w 130 -s
-        echo -e $spacer
+	echo -e "\e[96m User Attempts:"
+	echo -e $spacer
+	# echo -e "\e[33m${failedUserArray[@]}" | fold -w 130 -s
+	userAttemptCheck
+	echo -e $spacer
 fi
 
 # Show Ban?
