@@ -3,6 +3,25 @@
 ##                                                                          Function                                                                               ##
 #####################################################################################################################################################################
 
+function eventTimer () {
+end=$1
+if [ "$end" == '0' ]
+then
+	startTime=$(date +"%S")
+else
+	:
+fi
+if [ "$end" == '1' ]
+then
+        endTime=$(date +"%S")
+        diff=$(( (endTime - startTime) % 86400 ))
+        echo -e "\e[90mFunction took: $diff"
+else
+        :
+fi
+}
+
+
 function setup () {
 clear 
 dependencyCheck
@@ -42,7 +61,7 @@ sed -i "/attemptValue/s/=.*/=$attemptValue/" $config_file
 sed -i "/logEntryWarn/s/=.*/=$logEntryWarn/" $config_file
 sed -i "/logEntryMax/s/=.*/=$logEntryMax/" $config_file
 sed -i "/setupInit/s/=.*/=$setupInit/" $config_file
-sleep 5
+sleep 3
 sshFileName=$cachedsshFileName
 clear
 }
@@ -64,20 +83,21 @@ then
 		echo "Daemons restarted."
 		sleep 1
 		echo "Starting Admin Tool..."
-		sleep 5
+		sleep 3
 		clear
 	else
 		echo "Log size not at limit."
-	fi
+		fi
 else
 	echo "Continuing to Admin Tool..."
-	sleep 5
+	sleep 3
 	clear
 fi
 }
 
+
 function startUp () {
- Run Log Splitter?
+# Run Log Splitter?
 if [[ "$enableSplitter" == true && "$logDensity" > "$logEntryWarn" ]]
 then
        logSplit
@@ -197,6 +217,7 @@ printf "\n"
 }
 
 function userAttemptCheck () {
+#eventTimer '0'
 for (( t=0; t<len; t++));
 do
 SAVEIFS=$IFS
@@ -209,24 +230,28 @@ IFS=$'\n'
         failedRootCounter=$(($failedRootCounter + $failedRootSearch))
         failedUserEvents=$(cat /var/log/$sshFileName | grep "sshd" | grep "user" | grep "Failed password" | grep ${userList[$t]} | grep -v root)
         failedUserArray+=($failedUserEvents)
-
-IFS=$SAFEIFS
+IFS=$SAVEIFS
 done
+
 len=${#failedUserArray[@]}
 for (( t=0; t<len; t++ ));
 do
-        echo "${failedUserArray[$t]}"
+        echo -e "\e[92m${failedUserArray[$t]}\e[0m"
 done
-echo "${#failedUserArray[@]}"
+#printf '%s\n' "${failedUserArray[@]}"
+#eventTimer '1'
 }
-
 
 function display() {
+# Vars
+commandName=$1
+command=$2
+headingColor='\e[96m'
+commandColor='\e[33m'
 # Create Header
-echo $spacer
-loop to create spacing depending on the wordcount of output 
-echo $spacer
-print inputted function here
-echo $spacer
+echo -e "$headingColor$commandName"
+# loop to create spacing depending on the wordcount of output 
+echo -e "$spacer"
+echo -e "$commandColor${command}"
+echo -e "$spacer"
 }
-

@@ -72,30 +72,6 @@ esac
 done
 set -- "${POSITIONAL[@]}" # restore positional parameters
 
-function userAttemptCheck () {
-for (( t=0; t<len; t++));
-do
-SAVEIFS=$IFS
-IFS=$'\n'
-	# Find Occurrences of failed passwords/accepted passwords
-        failedUserSearch=$(cat /var/log/$sshFileName | grep "sshd" | grep "user" | grep "Failed password" | grep ${userList[$t]} | grep -v root | wc -l)
-	failedRootSearch=$(cat /var/log/$sshFileName | grep "sshd" | grep "user" | grep "Failed password" | grep ${userList[$t]} | grep root | wc -l)
-	successUserSearch=$(cat /var/log/$sshFileName | grep "sshd" | grep "user" | grep "Accepted password" | grep ${userList[$t]})
-	failedUserCounter=$(($failedUserCounter + $failedUserSearch))
-	failedRootCounter=$(($failedRootCounter + $failedRootSearch))
-	failedUserEvents=$(cat /var/log/$sshFileName | grep "sshd" | grep "user" | grep "Failed password" | grep ${userList[$t]} | grep -v root)
-	failedUserArray+=($failedUserEvents)
-
-IFS=$SAFEIFS
-done
-len=${#failedUserArray[@]}
-for (( t=0; t<len; t++ ));
-do
-	echo "${failedUserArray[$t]}"
-done
-echo "${#failedUserArray[@]}"
-}
-
 # Start Print
 echo -e $spacer 
 echo -e "\e[90m*\e[96m                                                     Admin Tool                                                            \e[90m \e[49m*"
@@ -136,13 +112,13 @@ echo -e "\e[0m"
 echo -e $spacer
 
 # Switch User Events
-echo -e "\e[96m Recent switch user events:"
-echo -e $spacer
-echo -e "\e[33m"
-searchExcluder "$switchUserEvents" '3'
-echo -e "\e[0m"
-echo -e $spacer
-
+#echo -e "\e[96m Recent switch user events:"
+#echo -e $spacer
+#echo -e "\e[33m"
+#searchExcluder "$switchUserEvents" '3'
+#echo -e "\e[0m"
+#echo -e $spacer
+display 'Recent Switch user events:' "{searchExcluder "$switchUserEvents" 3}"
 
 showUserAttempts=true # delete later
 # Show User Attempts?
